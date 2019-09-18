@@ -20,7 +20,7 @@
       .star span {
         display: block;
         font: 192px Arimo, sans-serif;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -10%);
         text-shadow: 0 0 32px currentColor, 0 0 64px currentColor,
           0 0 128px currentColor;
       }
@@ -67,9 +67,11 @@
             const phase = (this.t / period + star.phaseShift) % 1
             const z = (phase - 1) * 32768 + 1024
             return {
-              transform: `rotate(${phase * -60}deg) translate3d(${star.x}px, ${
-                star.y
-              }px, ${z}px) scale(3)`,
+              transform: [
+                `rotate(${phase * -60}deg)`,
+                `translate3d(${star.x}px, ${star.y}px, ${z}px)`,
+                `scale(3)`,
+              ].join(' '),
               opacity: phase < 0.1 ? phase * 10 : 1,
               color: `hsl(${star.hue}, 100%, 50%)`,
             }
