@@ -14,7 +14,7 @@ jobs:
           command: node render --url=file://$PWD/examples/gsap-hello-world.html?render --video=output/gsap-hello-world.mp4 --parallelism=8
           when: always
       - run:
-          command: node render --url=file://$PWD/examples/gsap-hello-world.html?render --video=output/gsap-hello-world-4k.mp4 --parallelism=4 --scale=2
+          command: node render --url=file://$PWD/examples/gsap-hello-world.html?render --video=output/gsap-hello-world-4k.mp4 --parallelism=2 --scale=2
           when: always
       - run:
           command: node render --url=file://$PWD/examples/gsap-hello-world.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
