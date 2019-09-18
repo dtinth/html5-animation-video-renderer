@@ -77,7 +77,8 @@
         },
       })
 
-      if (location.search === '?test') {
+      // Display the animation when not rendering, so that we can preview.
+      if (location.search !== '?render') {
         const start = Date.now()
         const frame = () => {
           animation.t = (Date.now() - start) / 1000

@@ -163,7 +163,7 @@ tkt
       url: {
         description: 'The URL to render',
         type: 'string',
-        default: `file://${__dirname}/examples/gsap-hello-world.html`,
+        default: `file://${__dirname}/examples/gsap-hello-world.html?render`,
       },
       video: {
         description: 'The path to video file to render',

@@ -44,8 +44,8 @@
           textShadow: '0 16px 64px black, 0 0 128px blue',
         })
 
-      // Add `?test` to the URL to preview the animation in the browser.
-      if (location.search !== '?test') {
+      // When rendering, stop the animation because we need a freeze frame.
+      if (location.search === '?render') {
         timeline.stop()
       }
 
