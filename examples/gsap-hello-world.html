@@ -15,6 +15,8 @@
       }
       #hello {
         color: #def;
+        /* This text shadow will make the browser lag, but when we render into a video file, it will be 60fps smooth!!! */
+        text-shadow: 0 16px 64px black;
         font: bold 120px Arimo, sans-serif;
       }
     </style>
@@ -30,7 +32,11 @@
       const timeline = new TimelineMax()
       timeline
         .fromTo('#hello', 1, { scale: 0 }, { scale: 1, ease: Power0.easeNone })
-        .to('#hello', 2, { scale: 5, opacity: 0, rotation: 360 })
+        .to('#hello', 2, {
+          scale: 5,
+          opacity: 0,
+          rotation: 360,
+        })
 
       // Add `?test` to the URL to preview the animation in the browser.
       if (location.search !== '?test') {
