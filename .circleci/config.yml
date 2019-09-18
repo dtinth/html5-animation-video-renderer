@@ -8,7 +8,8 @@ jobs:
       - checkout
       - run: sudo apt-get install -y ffmpeg
       - run: yarn
-      - run: node render.js
+      - run: mkdir -p output
+      - run: node render.js --url=file://$PWD/examples/gsap-hello-world.html --video=output/gsap-hello-world.mp4
       - store_artifacts:
-          path: video.mp4
-          destination: video.mp4
+          path: output
+          destination: output
