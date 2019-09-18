@@ -26,9 +26,11 @@ Features:
 
 ## Examples
 
-| Example                                                          | Result                                                                                                                                          |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| [examples/gsap-hello-world.html](examples/gsap-hello-world.html) | [🎬 View](https://latest-circleci-artifacts.lovely.workers.dev/github/dtinth/html5-animation-video-renderer/master/output/gsap-hello-world.mp4) |
+| Image                                                                                                                                                                                                         | Example                                                          | View in browser                                                                                                     | Result                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://latest-circleci-artifacts.lovely.workers.dev/github/dtinth/html5-animation-video-renderer/master/output/previews/gsap-hello-world/frame000064.png" alt="Screenshot" width="96" height="54"> | [examples/gsap-hello-world.html](examples/gsap-hello-world.html) | [🌏 View](https://raw.githack.com/dtinth/html5-animation-video-renderer/master/examples/gsap-hello-world.html?test) | [🎬 Play](https://latest-circleci-artifacts.lovely.workers.dev/github/dtinth/html5-animation-video-renderer/master/output/gsap-hello-world.mp4) |
+
+When viewed in browser, you will see that the animation is sluggish due to CPU-instensive transitions.
 
 ## Creating your HTML5 animation
 
