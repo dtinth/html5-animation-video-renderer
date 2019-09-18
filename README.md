@@ -4,8 +4,7 @@ A Node.js script that renders an HTML5-based animation into a high-quality video
 It renders the animation frame-by-frame using Puppeteer without using screen capturing, so no frameskips!
 
 It works by opening a headless browser and calls `seekToFrame(frameNumber)` for each frame of your animation.
-Your web page is expected to display that frame on the screen.
-It then captures a screenshot for that frame.
+When called, your web page is expected to display that frame on the screen so that a screenshot for that frame can be taken.
 Each frame is then sent to `ffmpeg` to encode the video without needing to save temporary files to disk.
 Because it works by capturing the page screenshot, it can render:
 
