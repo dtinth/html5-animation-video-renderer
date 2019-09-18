@@ -9,8 +9,13 @@ jobs:
       - run: sudo apt-get install -y ffmpeg
       - run: yarn
       - run: mkdir -p output
+
       - run: node render --url=file://$PWD/examples/gsap-hello-world.html --video=output/gsap-hello-world.mp4 --parallelism=8
       - run: node render --url=file://$PWD/examples/gsap-hello-world.html --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
+
+      - run: node render --url=file://$PWD/examples/vue-starfield.html --video=output/vue-starfield.mp4 --parallelism=8
+      - run: node render --url=file://$PWD/examples/vue-starfield.html --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
+
       - store_artifacts:
           path: output
           destination: output

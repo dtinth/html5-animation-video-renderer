@@ -9,6 +9,7 @@ body {
 
 #scene {
   background: #000;
+  color: white;
   width: 1920px;
   height: 1080px;
   overflow: hidden;

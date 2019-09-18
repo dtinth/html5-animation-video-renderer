@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../lib/style.css" />
+    <style>
+      #scene {
+        perspective: 1024px;
+        color: white;
+      }
+      .star {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        mix-blend-mode: screen;
+      }
+      .star span {
+        display: block;
+        font: 192px Arimo, sans-serif;
+        transform: translate(-50%, -50%);
+        text-shadow: 0 0 32px currentColor, 0 0 64px currentColor,
+          0 0 128px currentColor;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- The scene element will be rendered to the video file. -->
+    <div id="scene">
+      <div
+        class="star"
+        v-for="star, index in stars"
+        :key="index"
+        :style="style(star)"
+      >
+        <span>*</span>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
+
+    <!-- We need a deterministic random number generator, Chance provides this: https://chancejs.com/usage/seed.html -->
+    <script src="https://unpkg.com/chance@1.1.0/chance.js"></script>
+
+    <script>
+      const fps = 60
+      const period = 10
+
+      const chance = new Chance(12345)
+      animation = new Vue({
+        el: '#scene',
+        data: {
+          t: 0,
+          stars: Array(200)
+            .fill()
+            .map(() => ({
+              phaseShift: chance.random(),
+              hue: Math.round(chance.random() * 360),
+              x: (chance.random() - 0.5) * 2048 * 2,
+              y: (chance.random() - 0.5) * 2048 * 2,
+            })),
+        },
+        methods: {
+          style(star) {
+            const phase = (this.t / period + star.phaseShift) % 1
+            const z = (phase - 1) * 32768 + 1024
+            return {
+              transform: `rotate(${phase * -60}deg) translate3d(${star.x}px, ${
+                star.y
+              }px, ${z}px) scale(3)`,
+              opacity: phase < 0.1 ? phase * 10 : 1,
+              color: `hsl(${star.hue}, 100%, 50%)`,
+            }
+          },
+        },
+      })
+
+      if (location.search === '?test') {
+        const start = Date.now()
+        const frame = () => {
+          animation.t = (Date.now() - start) / 1000
+          requestAnimationFrame(frame)
+        }
+        requestAnimationFrame(frame)
+      }
+
+      // This function tells renderer about basic information about the video.
+      function getInfo() {
+        return {
+          fps,
+          numberOfFrames: period * fps,
+        }
+      }
+
+      // This function will be called before rendering each frame of the video.
+      async function seekToFrame(frame) {
+        animation.t = frame / fps
+        await animation.$nextTick()
+        await new Promise(requestAnimationFrame)
+      }
+    </script>
+  </body>
+</html>
