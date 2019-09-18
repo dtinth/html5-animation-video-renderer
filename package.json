@@ -5,6 +5,10 @@
     "tkt": "^2.0.0",
     "worker-farm": "^1.7.0"
   },
+  "files": [
+    "render.js",
+    "lib"
+  ],
   "name": "html5-animation-video-renderer",
   "description": "A Node.js script that renders an HTML5-based animation (\\*) into a high-quality video. It renders the animation frame-by-frame using Puppeteer without using screen capturing, so no frameskips!",
   "version": "0.1.0",
