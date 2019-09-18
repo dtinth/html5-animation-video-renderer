@@ -31,11 +31,17 @@
     <script>
       const timeline = new TimelineMax()
       timeline
-        .fromTo('#hello', 1, { scale: 0 }, { scale: 1, ease: Power0.easeNone })
+        .fromTo(
+          '#hello',
+          1,
+          { scale: 0, filter: 'blur(32px)' },
+          { scale: 1, filter: 'blur(0px)', ease: Power0.easeNone },
+        )
         .to('#hello', 2, {
           scale: 5,
           opacity: 0,
           rotation: 360,
+          textShadow: '0 16px 64px black, 0 0 128px blue',
         })
 
       // Add `?test` to the URL to preview the animation in the browser.
