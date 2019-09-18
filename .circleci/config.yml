@@ -1,0 +1,14 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run: sudo apt-get install -y ffmpeg
+      - run: yarn
+      - run: node render.js
+      - store_artifacts:
+          path: video.mp4
+          destination: video.mp4
