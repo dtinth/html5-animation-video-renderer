@@ -88,7 +88,7 @@ Your HTML5-based animation can be created using any tool, so long as the webpage
 
 ## Install the prerequisites
 
-Install Node.js 12 and Yarn, then install the project dependencies with:
+Install Node.js 12, Yarn and ffmpeg, then install the project dependencies with:
 
 ```
 yarn install
