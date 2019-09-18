@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "mkdirp": "^0.5.1",
     "puppeteer": "^1.20.0",
     "tkt": "^2.0.0",
     "worker-farm": "^1.7.0"
