@@ -20,10 +20,12 @@
     </style>
   </head>
   <body>
+    <!-- The scene element will be rendered to the video file. -->
     <div id="scene">
       <div id="hello">Hello, world!</div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+
     <script>
       const timeline = new TimelineMax()
       timeline.fromTo(
@@ -32,10 +34,15 @@
         { scale: 0, opacity: 1 },
         { scale: 5, opacity: 0, rotation: 360 },
       )
-      timeline.stop()
+
+      // Add `?test` to the URL to preview the animation in the browser.
+      if (location.search !== '?test') {
+        timeline.stop()
+      }
 
       const fps = 60
 
+      // This function tells renderer about basic information about the video.
       function getInfo() {
         return {
           fps,
@@ -43,6 +50,7 @@
         }
       }
 
+      // This function will be called before rendering each frame of the video.
       function seekToFrame(frame) {
         timeline.seek(frame / fps)
       }

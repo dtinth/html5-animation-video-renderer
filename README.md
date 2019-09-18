@@ -26,9 +26,48 @@ Features:
 
 ## Examples
 
-TBD
+| Example                                                          | Result                                                                                                                                          |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [examples/gsap-hello-world.html](examples/gsap-hello-world.html) | [🎬 View](https://latest-circleci-artifacts.lovely.workers.dev/github/dtinth/html5-animation-video-renderer/master/output/gsap-hello-world.mp4) |
+
+## Creating your HTML5 animation
+
+Your HTML5-based animation can be created using any tool, so long as the webpage has these properties:
+
+- The webpage should contain a `#scene` element in the DOM, positioned at `top: 0; left: 0;`.
+  The dimensions of the `#scene` element will be the video’s dimensions.
+  You can use the provided [lib/style.css](lib/style.css) as a starting point.
+
+- The webpage should contain these global JavaScript functions:
+
+  - **`getInfo()`** should return an object with the following properties:
+
+    - `fps` The video frame rate.
+    - `numberOfFrames` The number of frames to render.
+
+  - **`seekToFrame(frameNumber)`** should display the frame at the specified `frameNumber`.
+    This function may return a promise, in this case the renderer will wait for it to resolve.
+    Please make sure that all assets (such as images/fonts) are already loaded.
+
+  See an example at [examples/gsap-hello-world.html](examples/gsap-hello-world.html).
+
+## Install the prerequisites
+
+Install Node.js 12 and Yarn, then install the project dependencies with:
+
+```
+yarn install
+```
+
+## Running the renderer
+
+```
+node render --help
+```
 
 ## Demo
+
+TODO add video
 
 It has been used to render a 4-minute long 1080p60 video. That’s 15000 frames.
 The speed on my Late 2013 MacBook Pro is around 4.5 frames per second.
