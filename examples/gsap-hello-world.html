@@ -28,12 +28,9 @@
 
     <script>
       const timeline = new TimelineMax()
-      timeline.fromTo(
-        '#hello',
-        2,
-        { scale: 0, opacity: 1 },
-        { scale: 5, opacity: 0, rotation: 360 },
-      )
+      timeline
+        .fromTo('#hello', 1, { scale: 0 }, { scale: 1, ease: Power0.easeNone })
+        .to('#hello', 2, { scale: 5, opacity: 0, rotation: 360 })
 
       // Add `?test` to the URL to preview the animation in the browser.
       if (location.search !== '?test') {
