@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../lib/style.css" />
+    <style>
+      #scene {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #333;
+      }
+      #hello {
+        color: #def;
+        font: bold 120px Arimo, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scene">
+      <div id="hello">Hello, world!</div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+    <script>
+      const timeline = new TimelineMax()
+      timeline.fromTo(
+        '#hello',
+        2,
+        { scale: 0, opacity: 1 },
+        { scale: 5, opacity: 0, rotation: 360 },
+      )
+      timeline.stop()
+
+      const fps = 60
+
+      function getInfo() {
+        return {
+          fps,
+          numberOfFrames: timeline.duration() * fps,
+        }
+      }
+
+      function seekToFrame(frame) {
+        timeline.seek(frame / fps)
+      }
+    </script>
+  </body>
+</html>
