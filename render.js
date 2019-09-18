@@ -4,7 +4,7 @@ const tkt = require('tkt')
 const fs = require('fs')
 const path = require('path')
 
-function createRendererFactory(url) {
+function createRendererFactory(url, { scale = 1 } = {}) {
   return function createRenderer() {
     const promise = (async () => {
       const browser = await puppeteer.launch()
@@ -15,6 +15,11 @@ function createRendererFactory(url) {
         height: document.querySelector('#scene').offsetHeight,
         ...getInfo(),
       })`)
+      await page.setViewport({
+        width: info.width,
+        height: info.height,
+        deviceScaleFactor: scale,
+      })
       return { browser, page, info }
     })()
     let rendering = false
@@ -139,6 +144,7 @@ function ffmpegOutput(fps, outPath) {
 }
 
 function pngFileOutput(dirname) {
+  require('mkdirp').sync(dirname)
   return {
     writePNGFrame(buffer, frameNumber) {
       const basename = 'frame' + `${frameNumber}`.padStart(6, '0') + '.png'
@@ -176,18 +182,24 @@ tkt
         default: 0,
       },
       end: {
-        description: 'Frame number to finish rendering',
+        description:
+          'Frame number to end rendering (that frame number will not be rendered)',
         type: 'number',
       },
       png: {
         description: 'Directory for PNG frame output',
         type: 'string',
       },
+      scale: {
+        description: 'Device scale factor',
+        type: 'number',
+        default: 1,
+      },
     },
     async function main(args) {
       const renderer = createParallelRender(
         args.parallelism,
-        createRendererFactory(args.url),
+        createRendererFactory(args.url, { scale: args.scale }),
       )
       const info = await renderer.getInfo()
       console.log('Movie info:', info)
