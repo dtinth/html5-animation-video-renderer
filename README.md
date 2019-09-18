@@ -14,10 +14,10 @@ Because it works by capturing the page screenshot, it can render:
 - Canvas
 - WebGL
 
-However, the renderer needs to get the webpage to display a specific frame before rendering. Therefore, it does not support:
+However, the renderer needs to be able to display a freeze frame when requested. Therefore, it does not support:
 
 - CSS animations and transitions
-- Nondeterministic animation
+- Nondeterministic animations
 
 Features:
 
