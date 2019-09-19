@@ -9,8 +9,9 @@ function createRendererFactory(url, { scale = 1 } = {}) {
     const promise = (async () => {
       const browser = await puppeteer.launch()
       const page = await browser.newPage()
-      await page.goto(url)
-      const info = await page.evaluate(`({
+      page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+      page.on('pageerror', msg => console.log('PAGE ERROR:', msg));
+      await page.goto(url, { waitUntil: 'load' })
         width: document.querySelector('#scene').offsetWidth,
         height: document.querySelector('#scene').offsetHeight,
         ...getInfo(),
