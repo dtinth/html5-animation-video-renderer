@@ -30,8 +30,8 @@
 
         // 0.0 ~ 0.5
         float distanceFromClosestSide = min(min(vTextureCoord[1], 1. - vTextureCoord[1]), min(vTextureCoord[0] * 16. / 9., (1.0 - vTextureCoord[0]) * 16. / 9.));
-        float startTime = (0.5 - distanceFromClosestSide) * 2. * 0.8;
-        float finishTime = startTime + 0.2;
+        float startTime = (0.5 - distanceFromClosestSide) * 2. * 0.64;
+        float finishTime = startTime + 0.36;
         float progress = clamp((time - startTime) / (finishTime - startTime), 0.0, 1.0);
         float base = 0.2 + 0.5 * (1. - progress);
         float colorWidth = sin(progress * 3.1415);
@@ -72,10 +72,10 @@
       document.querySelector('#scene').appendChild(app.view)
 
       const readyPromise = new Promise(resolve => {
-        app.loader.add('images/ctw.jpg').load(resolve)
+        app.loader.add('images/street.jpg').load(resolve)
       }).then(() => {
         const sprite = new PIXI.Sprite(
-          app.loader.resources['images/ctw.jpg'].texture,
+          app.loader.resources['images/street.jpg'].texture,
         )
         const shader = new PIXI.Filter(
           null,
