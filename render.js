@@ -12,10 +12,11 @@ function createRendererFactory(url, { scale = 1 } = {}) {
       page.on('console', msg => console.log('PAGE LOG:', msg.text()));
       page.on('pageerror', msg => console.log('PAGE ERROR:', msg));
       await page.goto(url, { waitUntil: 'load' })
+      const info = await page.evaluate(`(async () => ({
         width: document.querySelector('#scene').offsetWidth,
         height: document.querySelector('#scene').offsetHeight,
-        ...getInfo(),
-      })`)
+        ...await getInfo(),
+      }))()`)
       await page.setViewport({
         width: info.width,
         height: info.height,
