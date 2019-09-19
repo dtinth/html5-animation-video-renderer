@@ -5,12 +5,13 @@ const fs = require('fs')
 const path = require('path')
 
 function createRendererFactory(url, { scale = 1 } = {}) {
+  const DATA_URL_PREFIX = 'data:image/png;base64,'
   return function createRenderer() {
     const promise = (async () => {
       const browser = await puppeteer.launch()
       const page = await browser.newPage()
-      page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-      page.on('pageerror', msg => console.log('PAGE ERROR:', msg));
+      page.on('console', msg => console.log('PAGE LOG:', msg.text()))
+      page.on('pageerror', msg => console.log('PAGE ERROR:', msg))
       await page.goto(url, { waitUntil: 'load' })
       const info = await page.evaluate(`(async () => ({
         width: document.querySelector('#scene').offsetWidth,
@@ -36,10 +37,13 @@ function createRendererFactory(url, { scale = 1 } = {}) {
         rendering = true
         try {
           const { page, info } = await promise
-          await page.evaluate(`seekToFrame(${i})`)
-          const buffer = await page.screenshot({
-            clip: { x: 0, y: 0, width: info.width, height: info.height },
-          })
+          const result = await page.evaluate(`seekToFrame(${i})`)
+          const buffer =
+            typeof result === 'string' && result.startsWith(DATA_URL_PREFIX)
+              ? Buffer.from(result.substr(DATA_URL_PREFIX.length), 'base64')
+              : await page.screenshot({
+                  clip: { x: 0, y: 0, width: info.width, height: info.height },
+                })
           return buffer
         } finally {
           rendering = false
