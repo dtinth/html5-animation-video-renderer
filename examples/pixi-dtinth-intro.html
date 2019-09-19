@@ -36,7 +36,7 @@
         float base = 0.2 + 0.5 * (1. - progress);
         float colorWidth = sin(progress * 3.1415);
 
-        float v = progress < 1. ? base + sampleColor[1] * colorWidth * 0.5 : 0.2;
+        float v = progress < 1. ? base + (sampleColor[1] - 0.5) * colorWidth : 0.2;
 
         if (v < 1. / 6.) {
           gl_FragColor = vec4(float(0x09)/255., float(0x08)/255., float(0x07)/255., 1);
