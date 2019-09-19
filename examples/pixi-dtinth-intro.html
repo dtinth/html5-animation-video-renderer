@@ -24,7 +24,8 @@
       uniform sampler2D uSampler;
       void main(void)
       {
-        float zoom = (5. - time * 4.);
+        float distanceFromCenter = sqrt(pow(vTextureCoord[1] - 0.5, 2.) + pow((vTextureCoord[0] - 0.5), 2.));
+        float zoom = 1. + (1. - time) * (2. + pow(distanceFromCenter, 2.) * 8.);
         vec2 coord = (vTextureCoord - vec2(0.5,0.5)) / zoom + vec2(0.5,0.5);
         vec4 sampleColor = texture2D(uSampler, coord);
 
@@ -34,7 +35,9 @@
         float finishTime = startTime + 0.36;
         float progress = clamp((time - startTime) / (finishTime - startTime), 0.0, 1.0);
         float base = 0.2 + 0.5 * (1. - progress);
-        float colorWidth = sin(progress * 3.1415);
+        float colorWidth = sin(progress * 3.1415) * 1.5;
+
+        // base = 0.5; colorWidth = 1.; // debug
 
         float v = progress < 1. ? base + (sampleColor[1] - 0.5) * colorWidth : 0.2;
 
