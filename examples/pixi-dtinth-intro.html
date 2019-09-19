@@ -24,12 +24,20 @@
       uniform sampler2D uSampler;
       void main(void)
       {
-        float o = 2. * min(min(vTextureCoord[1], 1.0 - vTextureCoord[1]), min(vTextureCoord[0] * 16. / 9., (1.0 - vTextureCoord[0]) * 16. / 9.));
-        float zoom = (1. + (time * time * time));
+        float zoom = (5. - time * 4.);
         vec2 coord = (vTextureCoord - vec2(0.5,0.5)) / zoom + vec2(0.5,0.5);
         vec4 sampleColor = texture2D(uSampler, coord);
-        float v = sampleColor[1] - 1. + (1. - time) * 1.7;
-        if (time < 1. - o) v = 0.7;
+
+        // 0.0 ~ 0.5
+        float distanceFromClosestSide = min(min(vTextureCoord[1], 1. - vTextureCoord[1]), min(vTextureCoord[0] * 16. / 9., (1.0 - vTextureCoord[0]) * 16. / 9.));
+        float startTime = (0.5 - distanceFromClosestSide) * 2. * 0.8;
+        float finishTime = startTime + 0.2;
+        float progress = clamp((time - startTime) / (finishTime - startTime), 0.0, 1.0);
+        float base = 0.2 + 0.5 * (1. - progress);
+        float colorWidth = sin(progress * 3.1415);
+
+        float v = progress < 1. ? base + sampleColor[1] * colorWidth * 0.5 : 0.2;
+
         if (v < 1. / 6.) {
           gl_FragColor = vec4(float(0x09)/255., float(0x08)/255., float(0x07)/255., 1);
         } else if (v < 2. / 6.) {
@@ -79,8 +87,10 @@
         app.ticker.update()
 
         const timeline = new TimelineMax()
-        timeline.to(shader.uniforms, 5, {
+        timeline.to(shader.uniforms, 1.5, {
           time: 1,
+          delay: 0.1,
+          ease: Power2.easeInOut,
           onUpdate() {
             app.ticker.update()
           },
