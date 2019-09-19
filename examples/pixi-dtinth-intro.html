@@ -47,23 +47,23 @@
     </script>
 
     <script>
-      console.log('a1')
-      fps = 60
+      const fps = 60
 
-      console.log('a2')
+      // Headless Chrome fails the `failIfMajorPerformanceCaveat` test.
+      // Disable this so that Pixi.js can run.
+      // See: https://github.com/pixijs/pixi.js/issues/5778
       PIXI.settings.FAIL_IF_MAJOR_PERFORMANCE_CAVEAT = false
-      app = new PIXI.Application({
+
+      const app = new PIXI.Application({
         width: 1920,
         height: 1080,
         transparent: true,
         autoStart: false,
       })
-      console.log('a3')
 
       document.querySelector('#scene').appendChild(app.view)
-      console.log('a4')
 
-      readyPromise = new Promise(resolve => {
+      const readyPromise = new Promise(resolve => {
         app.loader.add('images/ctw.jpg').load(resolve)
       }).then(() => {
         const sprite = new PIXI.Sprite(
@@ -92,10 +92,7 @@
         }
         return { timeline }
       })
-      console.log('c')
-    </script>
-    <script>
-      console.log('z')
+
       // This function tells renderer about basic information about the video.
       async function getInfo() {
         const { timeline } = await readyPromise
