@@ -130,6 +130,9 @@ function ffmpegOutput(fps, outPath) {
     '16',
     '-preset',
     'ultrafast',
+    // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+    '-pix_fmt',
+    'yuv420p',
     '-y',
     outPath,
   ])
