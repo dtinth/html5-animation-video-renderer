@@ -11,17 +11,28 @@ jobs:
       - run: mkdir -p output
 
       - run:
-          command: node render --url=file://$PWD/examples/gsap-hello-world.html?render --video=output/gsap-hello-world.mp4 --parallelism=8
+          command: env PORT=8080 yarn http-server
+          background: true
+
+      - run:
+          command: node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --video=output/gsap-hello-world.mp4 --parallelism=8
           when: always
       - run:
-          command: node render --url=file://$PWD/examples/gsap-hello-world.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
+          command: node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
           when: always
 
       - run:
-          command: node render --url=file://$PWD/examples/vue-starfield.html?render --video=output/vue-starfield.mp4 --parallelism=4
+          command: node render --url=http://localhost:8080/examples/vue-starfield.html?render --video=output/vue-starfield.mp4 --parallelism=4
           when: always
       - run:
-          command: node render --url=file://$PWD/examples/vue-starfield.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
+          command: node render --url=http://localhost:8080/examples/vue-starfield.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
+          when: always
+
+      - run:
+          command: node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --video=output/pixi-dtinth-intro.mp4 --parallelism=4
+          when: always
+      - run:
+          command: node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/pixi-dtinth-intro
           when: always
 
       - store_artifacts:
