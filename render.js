@@ -47,9 +47,9 @@ function createRendererFactory(url, { scale = 1, alpha = false, launchArgs = [] 
             typeof result === 'string' && result.startsWith(DATA_URL_PREFIX)
               ? Buffer.from(result.substr(DATA_URL_PREFIX.length), 'base64')
               : await page.screenshot({
-                  clip: { x: 0, y: 0, width: info.width, height: info.height },
-                  omitBackground: alpha,
-                })
+                clip: { x: 0, y: 0, width: info.width, height: info.height },
+                omitBackground: alpha,
+              })
           marks.push(Date.now())
           console.log(
             name,
@@ -90,7 +90,7 @@ function createParallelRender(max, rendererFactory) {
     return null
   }
   const work = async (fn, taskDescription) => {
-    for (;;) {
+    for (; ;) {
       const worker = obtainWorker()
       if (!worker) {
         if (!waiting) {
@@ -140,21 +140,21 @@ function ffmpegOutput(fps, outPath, { alpha }) {
     ...['-i', '-'],
     ...(alpha
       ? [
-          // https://stackoverflow.com/a/12951156/559913
-          ...['-c:v', 'qtrle'],
+        // https://stackoverflow.com/a/12951156/559913
+        ...['-c:v', 'qtrle'],
 
-          // https://unix.stackexchange.com/a/111897
-          // ...['-c:v', 'prores_ks'],
-          // ...['-pix_fmt', 'yuva444p10le'],
-          // ...['-profile:v', '4444'],
-        ]
+        // https://unix.stackexchange.com/a/111897
+        // ...['-c:v', 'prores_ks'],
+        // ...['-pix_fmt', 'yuva444p10le'],
+        // ...['-profile:v', '4444'],
+      ]
       : [
-          ...['-c:v', 'libx264'],
-          ...['-crf', '16'],
-          ...['-preset', 'ultrafast'],
-          // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
-          ...['-pix_fmt', 'yuv420p'],
-        ]),
+        ...['-c:v', 'libx264'],
+        ...['-crf', '16'],
+        ...['-preset', 'ultrafast'],
+        // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+        ...['-pix_fmt', 'yuv420p'],
+      ]),
     '-y',
     outPath,
   ])
@@ -177,7 +177,7 @@ function pngFileOutput(dirname) {
       const basename = 'frame' + `${frameNumber}`.padStart(6, '0') + '.png'
       fs.writeFileSync(path.join(dirname, basename), buffer)
     },
-    end() {},
+    end() { },
   }
 }
 
@@ -272,7 +272,7 @@ tkt
       renderer.end()
     },
   )
-  .command('$0', 'Starts a rendering server', {}, async () => {
+  .command('server', 'Starts a rendering server', {}, async () => {
     const express = require('express')
     const app = express()
     app.use(require('body-parser').json())
@@ -312,11 +312,11 @@ tkt
     })
     const port = +process.env.PORT || 8080
     const server = await new Promise(resolve =>
-      app.listen(port, function() {
+      app.listen(port, function () {
         resolve(this)
       }),
     )
     console.log('Now listening on port ' + port)
-    return new Promise(() => {})
+    return new Promise(() => { })
   })
   .parse()
