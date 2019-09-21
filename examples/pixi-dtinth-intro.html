@@ -17,6 +17,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
     <script id="shader" type="shader">
+      // https://community.khronos.org/t/pi-3-1415926/53090
+      #define M_PI 3.1415926535897932384626433832795
+
       precision mediump float;
       uniform float time;
 
@@ -25,21 +28,40 @@
       void main(void)
       {
         float distanceFromCenter = sqrt(pow(vTextureCoord[1] - 0.5, 2.) + pow((vTextureCoord[0] - 0.5), 2.));
-        float zoom = 1. + (1. - time) * (2. + pow(distanceFromCenter, 2.) * 8.);
-        vec2 coord = (vTextureCoord - vec2(0.5,0.5)) / zoom + vec2(0.5,0.5);
-        vec4 sampleColor = texture2D(uSampler, coord);
+        float zoom = 1. + (1. - time) * (2. + pow(distanceFromCenter, 2.) * 16.);
+        vec2 textureCoord = (vTextureCoord - 0.5) / zoom + 0.5;
+        vec4 sampleColor = texture2D(uSampler, textureCoord);
 
         // 0.0 ~ 0.5
         float distanceFromClosestSide = min(min(vTextureCoord[1], 1. - vTextureCoord[1]), min(vTextureCoord[0] * 16. / 9., (1.0 - vTextureCoord[0]) * 16. / 9.));
         float startTime = (0.5 - distanceFromClosestSide) * 2. * 0.64;
         float finishTime = startTime + 0.36;
         float progress = clamp((time - startTime) / (finishTime - startTime), 0.0, 1.0);
-        float base = 0.2 + 0.5 * (1. - progress);
-        float colorWidth = sin(progress * 3.1415) * 1.5;
+        float vFrom = 0.7;
+        float vTo = 0.2;
+
+        // Cube-like thing
+        // Thanks to https://www.youtube.com/watch?v=VmrIDyYiJBA
+        float gridZoom = 1. + time * (1. + 16. * distanceFromCenter * distanceFromCenter);
+        vec2 gridCoord = (vTextureCoord - 0.5) * vec2(16., 9.) * 0.4 / gridZoom;
+        vec2 gridSize = vec2(sqrt(1. - pow(sin(M_PI / 6.), 2.)), 1. + sin(M_PI / 6.));
+        vec2 gridA = mod(gridCoord, gridSize) - (gridSize / 2.);
+        vec2 gridB = mod(gridCoord - gridSize / 2., gridSize) - (gridSize / 2.);
+        vec2 gridOffsetFromCentre = length(gridA) < length(gridB) ? gridA : gridB;
+        vec2 gridCentrePosition = gridCoord - gridOffsetFromCentre;
+        float gridAngle = atan(gridOffsetFromCentre.y, gridOffsetFromCentre.x);
+        int baseColorIndex = int(mod((gridAngle + M_PI * 1. / 6.) / (M_PI * 2. / 3.), 3.));
+        vec2 hexPos = floor(gridCentrePosition / gridSize * 2. + 0.5);
+        if (baseColorIndex > 0 && mod(hexPos.x + hexPos.y, 4.) < 2.) {
+          baseColorIndex = 3 - baseColorIndex;
+        }
+        vFrom = baseColorIndex == 0 ? 0.5 : baseColorIndex == 1 ? 0.7 : 0.9;
+
+        float base = vFrom + (vTo - vFrom) * (progress);
+        float colorWidth = sin(progress * M_PI) * 0.5;
 
         // base = 0.5; colorWidth = 1.; // debug
-
-        float v = progress < 1. ? base + (sampleColor[1] - 0.5) * colorWidth : 0.2;
+        float v = base + (sampleColor[1] - 0.5) * colorWidth;
 
         if (v < 1. / 6.) {
           gl_FragColor = vec4(float(0x09)/255., float(0x08)/255., float(0x07)/255., 1);
@@ -54,6 +76,7 @@
         } else {
           gl_FragColor = vec4(float(0xff)/255., float(0xff)/255., float(0xff)/255., 1);
         }
+        // gl_FragColor.rg = hexPos / 3.;
       }
     </script>
 
@@ -75,10 +98,10 @@
       document.querySelector('#scene').appendChild(app.view)
 
       const readyPromise = new Promise(resolve => {
-        app.loader.add('images/street.jpg').load(resolve)
+        app.loader.add('images/bkk.jpg').load(resolve)
       }).then(() => {
         const sprite = new PIXI.Sprite(
-          app.loader.resources['images/street.jpg'].texture,
+          app.loader.resources['images/bkk.jpg'].texture,
         )
         const shader = new PIXI.Filter(
           null,
