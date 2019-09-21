@@ -130,6 +130,11 @@ function ffmpegOutput(fps, outPath, { alpha }) {
       ? [
           // https://stackoverflow.com/a/12951156/559913
           ...['-c:v', 'qtrle'],
+
+          // https://unix.stackexchange.com/a/111897
+          // ...['-c:v', 'prores_ks'],
+          // ...['-pix_fmt', 'yuva444p10le'],
+          // ...['-profile:v', '4444'],
         ]
       : [
           ...['-c:v', 'libx264'],
