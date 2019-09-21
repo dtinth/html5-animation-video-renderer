@@ -147,6 +147,8 @@ function ffmpegOutput(fps, outPath, { alpha }) {
         // ...['-c:v', 'prores_ks'],
         // ...['-pix_fmt', 'yuva444p10le'],
         // ...['-profile:v', '4444'],
+        // https://www.ffmpeg.org/ffmpeg-codecs.html#Speed-considerations
+        // ...['-qscale', '4']
       ]
       : [
         ...['-c:v', 'libx264'],
