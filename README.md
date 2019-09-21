@@ -21,8 +21,12 @@ However, the renderer needs to be able to display a freeze frame when requested.
 
 Features:
 
-- Works with GSAP.
-- It can run multiple instances of headless Chrome to speed up rendering.
+- **Outputs high-quality MP4 file** with configurable frame rate and size.
+- **Outputs PNG image frames** with the `--png` flag.
+- **Framework-agnostic,** so you can use it with GSAP, Pixi.js, Vue.js, React.js, etc. See examples below!
+- **Parallizable** — It can run multiple instances of headless Chrome in parallel to speed up rendering.
+- **Video with alpha channel** can be rendered using the `--transparent` option.
+  It outputs as a QuickTime Animation (.mov) file.
 
 ## Examples and demos
 
@@ -162,7 +166,7 @@ Just set `--end` to (`--start` + 1) and render out a `--png` file.
 node render --url=<URL> --png=<DIR> --start=60 --end=61
 ```
 
-### Upscale/downscale the video
+### Upscale/downscale the viewport
 
 Use the `--scale` option to scale up or scale down the browser viewport.
 
@@ -170,6 +174,19 @@ Use the `--scale` option to scale up or scale down the browser viewport.
 node render --url=<URL> --video=<FILE>.mp4 --scale=0.5
 node render --url=<URL> --video=<FILE>.mp4 --scale=2
 ```
+
+### Render alpha channel
+
+You can also use this tool to render animations with alpha channel passing the `--alpha` option and outputting a `.mov` file.
+Note that the resulting file size will be significantly larger due to codec change (QuickTime Animation codec)!
+
+```
+node render --url=<URL> --video=<FILE>.mov --alpha
+```
+
+This allows you to composite the rendered animation on top of another video file!
+
+![](docs/images/transparent-example.png)
 
 <!--
 ## Demo

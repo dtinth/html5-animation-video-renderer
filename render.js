@@ -4,7 +4,7 @@ const tkt = require('tkt')
 const fs = require('fs')
 const path = require('path')
 
-function createRendererFactory(url, { scale = 1, transparent = false } = {}) {
+function createRendererFactory(url, { scale = 1, alpha = false } = {}) {
   const DATA_URL_PREFIX = 'data:image/png;base64,'
   return function createRenderer() {
     const promise = (async () => {
@@ -43,7 +43,7 @@ function createRendererFactory(url, { scale = 1, transparent = false } = {}) {
               ? Buffer.from(result.substr(DATA_URL_PREFIX.length), 'base64')
               : await page.screenshot({
                   clip: { x: 0, y: 0, width: info.width, height: info.height },
-                  omitBackground: transparent,
+                  omitBackground: alpha,
                 })
           return buffer
         } finally {
@@ -121,12 +121,12 @@ function createParallelRender(max, rendererFactory) {
   }
 }
 
-function ffmpegOutput(fps, outPath, { transparent }) {
+function ffmpegOutput(fps, outPath, { alpha }) {
   const ffmpeg = spawn('ffmpeg', [
     ...['-f', 'image2pipe'],
     ...['-framerate', `${fps}`],
     ...['-i', '-'],
-    ...(transparent
+    ...(alpha
       ? [
           // https://stackoverflow.com/a/12951156/559913
           ...['-c:v', 'qtrle'],
@@ -177,7 +177,7 @@ tkt
       },
       video: {
         description:
-          'The path to video file to render. For non-transparent this MUST be .mp4, and for transparent this MUST be .mov',
+          'The path to video file to render. Without `--alpha` this MUST be .mp4, and with `--alpha` this MUST be .mov',
         type: 'string',
         default: 'video.mp4',
       },
@@ -201,8 +201,9 @@ tkt
         description: 'Directory for PNG frame output',
         type: 'string',
       },
-      transparent: {
-        description: 'Generate a transparent PNG',
+      alpha: {
+        description:
+          'Renders a image/video with alpha transparency. For video, the file extension MUST be .mov',
         type: 'boolean',
       },
       scale: {
@@ -216,7 +217,7 @@ tkt
         args.parallelism,
         createRendererFactory(args.url, {
           scale: args.scale,
-          transparent: args.transparent,
+          alpha: args.alpha,
         }),
       )
       const info = await renderer.getInfo()
@@ -226,7 +227,7 @@ tkt
       if (args.video) {
         outputs.push(
           ffmpegOutput(info.fps, args.video, {
-            transparent: args.transparent,
+            alpha: args.alpha,
           }),
         )
       }
