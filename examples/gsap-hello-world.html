@@ -19,6 +19,9 @@
         text-shadow: 0 16px 64px black;
         font: bold 120px Arimo, sans-serif;
       }
+      html.is-transparent #scene {
+        background: transparent;
+      }
     </style>
   </head>
   <body>
@@ -45,8 +48,12 @@
         })
 
       // When rendering, stop the animation because we need a freeze frame.
-      if (location.search === '?render') {
+      const params = new URL(location).searchParams
+      if (params.get('render') != null) {
         timeline.stop()
+      }
+      if (params.get('transparent') != null) {
+        document.documentElement.classList.add('is-transparent')
       }
 
       const fps = 60

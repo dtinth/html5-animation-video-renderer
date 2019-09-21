@@ -2,6 +2,10 @@
   background: #0f0;
 }
 
+:root.is-transparent {
+  background: transparent;
+}
+
 body {
   margin: 0;
   padding: 0;

@@ -4,7 +4,7 @@ const tkt = require('tkt')
 const fs = require('fs')
 const path = require('path')
 
-function createRendererFactory(url, { scale = 1 } = {}) {
+function createRendererFactory(url, { scale = 1, transparent = false } = {}) {
   const DATA_URL_PREFIX = 'data:image/png;base64,'
   return function createRenderer() {
     const promise = (async () => {
@@ -43,6 +43,7 @@ function createRendererFactory(url, { scale = 1 } = {}) {
               ? Buffer.from(result.substr(DATA_URL_PREFIX.length), 'base64')
               : await page.screenshot({
                   clip: { x: 0, y: 0, width: info.width, height: info.height },
+                  omitBackground: transparent,
                 })
           return buffer
         } finally {
@@ -120,23 +121,23 @@ function createParallelRender(max, rendererFactory) {
   }
 }
 
-function ffmpegOutput(fps, outPath) {
+function ffmpegOutput(fps, outPath, { transparent }) {
   const ffmpeg = spawn('ffmpeg', [
-    '-f',
-    'image2pipe',
-    '-framerate',
-    `${fps}`,
-    '-i',
-    '-',
-    '-c:v',
-    'libx264',
-    '-crf',
-    '16',
-    '-preset',
-    'ultrafast',
-    // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
-    '-pix_fmt',
-    'yuv420p',
+    ...['-f', 'image2pipe'],
+    ...['-framerate', `${fps}`],
+    ...['-i', '-'],
+    ...(transparent
+      ? [
+          // https://stackoverflow.com/a/12951156/559913
+          ...['-c:v', 'qtrle'],
+        ]
+      : [
+          ...['-c:v', 'libx264'],
+          ...['-crf', '16'],
+          ...['-preset', 'ultrafast'],
+          // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+          ...['-pix_fmt', 'yuv420p'],
+        ]),
     '-y',
     outPath,
   ])
@@ -175,7 +176,8 @@ tkt
         default: `file://${__dirname}/examples/gsap-hello-world.html?render`,
       },
       video: {
-        description: 'The path to video file to render',
+        description:
+          'The path to video file to render. For non-transparent this MUST be .mp4, and for transparent this MUST be .mov',
         type: 'string',
         default: 'video.mp4',
       },
@@ -199,6 +201,10 @@ tkt
         description: 'Directory for PNG frame output',
         type: 'string',
       },
+      transparent: {
+        description: 'Generate a transparent PNG',
+        type: 'boolean',
+      },
       scale: {
         description: 'Device scale factor',
         type: 'number',
@@ -208,14 +214,21 @@ tkt
     async function main(args) {
       const renderer = createParallelRender(
         args.parallelism,
-        createRendererFactory(args.url, { scale: args.scale }),
+        createRendererFactory(args.url, {
+          scale: args.scale,
+          transparent: args.transparent,
+        }),
       )
       const info = await renderer.getInfo()
       console.log('Movie info:', info)
 
       const outputs = []
       if (args.video) {
-        outputs.push(ffmpegOutput(info.fps, args.video))
+        outputs.push(
+          ffmpegOutput(info.fps, args.video, {
+            transparent: args.transparent,
+          }),
+        )
       }
       if (args.png != null) {
         outputs.push(pngFileOutput(args.png))
