@@ -4,11 +4,13 @@ const tkt = require('tkt')
 const fs = require('fs')
 const path = require('path')
 
-function createRendererFactory(url, { scale = 1, alpha = false } = {}) {
+function createRendererFactory(url, { scale = 1, alpha = false, launchArgs = [] } = {}) {
   const DATA_URL_PREFIX = 'data:image/png;base64,'
-  return function createRenderer() {
+  return function createRenderer({ name = 'Worker' } = {}) {
     const promise = (async () => {
-      const browser = await puppeteer.launch()
+      const browser = await puppeteer.launch({
+        args: launchArgs,
+      })
       const page = await browser.newPage()
       page.on('console', msg => console.log('PAGE LOG:', msg.text()))
       page.on('pageerror', msg => console.log('PAGE ERROR:', msg))
@@ -36,8 +38,11 @@ function createRendererFactory(url, { scale = 1, alpha = false } = {}) {
         }
         rendering = true
         try {
+          const marks = [Date.now()]
           const { page, info } = await promise
+          marks.push(Date.now())
           const result = await page.evaluate(`seekToFrame(${i})`)
+          marks.push(Date.now())
           const buffer =
             typeof result === 'string' && result.startsWith(DATA_URL_PREFIX)
               ? Buffer.from(result.substr(DATA_URL_PREFIX.length), 'base64')
@@ -45,6 +50,12 @@ function createRendererFactory(url, { scale = 1, alpha = false } = {}) {
                   clip: { x: 0, y: 0, width: info.width, height: info.height },
                   omitBackground: alpha,
                 })
+          marks.push(Date.now())
+          console.log(
+            name,
+            `render(${i}) finished`,
+            `timing=${marks.map((v, i, a) => i === 0 ? null : v - a[i - 1]).slice(1)}`
+          )
           return buffer
         } finally {
           rendering = false
@@ -65,7 +76,8 @@ function createParallelRender(max, rendererFactory) {
   let waiting = null
   function obtainWorker() {
     if (available.length + working.size < max) {
-      const worker = { id: nextWorkerId++, renderer: rendererFactory() }
+      const id = nextWorkerId++
+      const worker = { id, renderer: rendererFactory(`Worker ${id}`) }
       available.push(worker)
       console.log('Spawn worker %d', worker.id)
       if (waiting) waiting.nudge()
@@ -279,10 +291,11 @@ tkt
           }
           currentRenderer = {
             renderer: createParallelRender(
-              1,
+              +process.env.HTML5_ANIMATION_VIDEO_RENDERER_PARALLELIZATION || 1,
               createRendererFactory(options.url, {
                 scale: options.scale,
                 alpha: options.alpha,
+                launchArgs: ['--no-sandbox', '--disable-dev-shm-usage'],
               }),
             ),
             options: optionsString,
