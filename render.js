@@ -260,4 +260,50 @@ tkt
       renderer.end()
     },
   )
+  .command('$0', 'Starts a rendering server', {}, async () => {
+    const express = require('express')
+    const app = express()
+    app.use(require('body-parser').json())
+    let currentRenderer
+    app.get('/render', async (req, res, next) => {
+      try {
+        const options = {
+          url: String(req.query.url),
+          alpha: req.query.alpha === '1',
+          scale: +req.query.scale || 1,
+        }
+        const optionsString = JSON.stringify(options)
+        if (!currentRenderer || currentRenderer.options !== optionsString) {
+          if (currentRenderer) {
+            currentRenderer.renderer.end()
+          }
+          currentRenderer = {
+            renderer: createParallelRender(
+              1,
+              createRendererFactory(options.url, {
+                scale: options.scale,
+                alpha: options.alpha,
+              }),
+            ),
+            options: optionsString,
+          }
+        }
+        const result = await currentRenderer.renderer.render(
+          +req.query.frame || 0,
+        )
+        res.set('Content-Type', 'image/png')
+        res.send(result)
+      } catch (error) {
+        next(error)
+      }
+    })
+    const port = +process.env.PORT || 8080
+    const server = await new Promise(resolve =>
+      app.listen(port, function() {
+        resolve(this)
+      }),
+    )
+    console.log('Now listening on port ' + port)
+    return new Promise(() => {})
+  })
   .parse()
