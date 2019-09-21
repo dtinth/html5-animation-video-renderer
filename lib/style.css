@@ -19,3 +19,7 @@ body {
   overflow: hidden;
   contain: strict;
 }
+
+:root.is-transparent #scene {
+  background: transparent;
+}
