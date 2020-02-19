@@ -1,5 +1,7 @@
 # html5-animation-video-renderer
 
+[**Watch the introduction video**](https://www.youtube.com/watch?v=zaSYWktDkAQ)
+
 A Node.js script that renders an HTML5-based animation into a high-quality video (supports at least 1080p60).
 It renders the animation in a frame-by-frame basis using Puppeteer.
 So, even very CPU-intensive animations can be rendered without skipping frames (unlike screen recording solutions).
