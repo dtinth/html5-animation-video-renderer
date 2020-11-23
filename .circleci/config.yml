@@ -46,6 +46,6 @@ workflows:
   monthly:
     triggers:
       - schedule:
-          cron: "12 34 5 *"
+          cron: "12 34 5 * *"
     jobs:
       - build
