@@ -46,7 +46,7 @@ workflows:
   monthly:
     triggers:
       - schedule:
-          cron: "12 34 5 * *"
+          cron: "1 2 3 * *"
           filters:
             branches:
               only:
