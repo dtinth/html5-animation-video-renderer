@@ -38,3 +38,14 @@ jobs:
       - store_artifacts:
           path: output
           destination: output
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+  monthly:
+    triggers:
+      - schedule:
+          cron: "12 34 5 *"
+    jobs:
+      - build
