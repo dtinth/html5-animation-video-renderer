@@ -90,6 +90,10 @@ Your HTML5-based animation can be created using any tool, so long as the webpage
     This function may return a promise, in this case the renderer will wait for it to resolve.
     Please make sure that all assets (such as images/fonts) are already loaded.
 
+    If `seekToFrame()` returns (or resolves to) a string begining with `data:image/png;base64,`,
+    then the renderer directly renders the PNG image instead of taking a screenshot.
+    This can really speed up rendering by an order of magnitude.
+
   See an example at [examples/gsap-hello-world.html](examples/gsap-hello-world.html).
 
 ## Install the prerequisites
