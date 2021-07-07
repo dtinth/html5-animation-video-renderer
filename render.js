@@ -4,7 +4,10 @@ const tkt = require('tkt')
 const fs = require('fs')
 const path = require('path')
 
-function createRendererFactory(url, { scale = 1, alpha = false, launchArgs = [] } = {}) {
+function createRendererFactory(
+  url,
+  { scale = 1, alpha = false, launchArgs = [] } = {},
+) {
   const DATA_URL_PREFIX = 'data:image/png;base64,'
   return function createRenderer({ name = 'Worker' } = {}) {
     const promise = (async () => {
@@ -12,14 +15,26 @@ function createRendererFactory(url, { scale = 1, alpha = false, launchArgs = [] 
         args: launchArgs,
       })
       const page = await browser.newPage()
-      page.on('console', msg => console.log('PAGE LOG:', msg.text()))
-      page.on('pageerror', msg => console.log('PAGE ERROR:', msg))
+      page.on('console', (msg) => console.log('PAGE LOG:', msg.text()))
+      page.on('pageerror', (msg) => console.log('PAGE ERROR:', msg))
       await page.goto(url, { waitUntil: 'load' })
-      const info = await page.evaluate(`(async () => ({
-        width: document.querySelector('#scene').offsetWidth,
-        height: document.querySelector('#scene').offsetHeight,
-        ...await getInfo(),
-      }))()`)
+      const info = await page.evaluate(`(async () => {
+        let deadline = Date.now() + 10000
+        while (Date.now() < deadline) {
+          if (typeof getInfo === 'function') {
+            break
+          }
+          await new Promise(r => setTimeout(r, 1000))
+        }
+        const info = await getInfo()
+        if (!info.width || !info.height) {
+          Object.assign(info, {
+            width: document.querySelector('#scene').offsetWidth,
+            height: document.querySelector('#scene').offsetHeight,
+          })
+        }
+        return info
+      })()`)
       await page.setViewport({
         width: info.width,
         height: info.height,
@@ -47,14 +62,16 @@ function createRendererFactory(url, { scale = 1, alpha = false, launchArgs = [] 
             typeof result === 'string' && result.startsWith(DATA_URL_PREFIX)
               ? Buffer.from(result.substr(DATA_URL_PREFIX.length), 'base64')
               : await page.screenshot({
-                clip: { x: 0, y: 0, width: info.width, height: info.height },
-                omitBackground: alpha,
-              })
+                  clip: { x: 0, y: 0, width: info.width, height: info.height },
+                  omitBackground: alpha,
+                })
           marks.push(Date.now())
           console.log(
             name,
             `render(${i}) finished`,
-            `timing=${marks.map((v, i, a) => i === 0 ? null : v - a[i - 1]).slice(1)}`
+            `timing=${marks
+              .map((v, i, a) => (i === 0 ? null : v - a[i - 1]))
+              .slice(1)}`,
           )
           return buffer
         } finally {
@@ -90,12 +107,12 @@ function createParallelRender(max, rendererFactory) {
     return null
   }
   const work = async (fn, taskDescription) => {
-    for (; ;) {
+    for (;;) {
       const worker = obtainWorker()
       if (!worker) {
         if (!waiting) {
           let nudge
-          const promise = new Promise(resolve => {
+          const promise = new Promise((resolve) => {
             nudge = () => {
               waiting = null
               resolve()
@@ -122,13 +139,15 @@ function createParallelRender(max, rendererFactory) {
   }
   return {
     async getInfo() {
-      return work(r => r.getInfo(), 'getInfo')
+      return work((r) => r.getInfo(), 'getInfo')
     },
     async render(i) {
-      return work(r => r.render(i), `render(${i})`)
+      return work((r) => r.render(i), `render(${i})`)
     },
     async end() {
-      return Promise.all([...available, ...working].map(r => r.renderer.end()))
+      return Promise.all(
+        [...available, ...working].map((r) => r.renderer.end()),
+      )
     },
   }
 }
@@ -140,23 +159,23 @@ function ffmpegOutput(fps, outPath, { alpha }) {
     ...['-i', '-'],
     ...(alpha
       ? [
-        // https://stackoverflow.com/a/12951156/559913
-        ...['-c:v', 'qtrle'],
+          // https://stackoverflow.com/a/12951156/559913
+          ...['-c:v', 'qtrle'],
 
-        // https://unix.stackexchange.com/a/111897
-        // ...['-c:v', 'prores_ks'],
-        // ...['-pix_fmt', 'yuva444p10le'],
-        // ...['-profile:v', '4444'],
-        // https://www.ffmpeg.org/ffmpeg-codecs.html#Speed-considerations
-        // ...['-qscale', '4']
-      ]
+          // https://unix.stackexchange.com/a/111897
+          // ...['-c:v', 'prores_ks'],
+          // ...['-pix_fmt', 'yuva444p10le'],
+          // ...['-profile:v', '4444'],
+          // https://www.ffmpeg.org/ffmpeg-codecs.html#Speed-considerations
+          // ...['-qscale', '4']
+        ]
       : [
-        ...['-c:v', 'libx264'],
-        ...['-crf', '16'],
-        ...['-preset', 'ultrafast'],
-        // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
-        ...['-pix_fmt', 'yuv420p'],
-      ]),
+          ...['-c:v', 'libx264'],
+          ...['-crf', '16'],
+          ...['-preset', 'ultrafast'],
+          // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+          ...['-pix_fmt', 'yuv420p'],
+        ]),
     '-y',
     outPath,
   ])
@@ -179,7 +198,7 @@ function pngFileOutput(dirname) {
       const basename = 'frame' + `${frameNumber}`.padStart(6, '0') + '.png'
       fs.writeFileSync(path.join(dirname, basename), buffer)
     },
-    end() { },
+    end() {},
   }
 }
 
@@ -313,12 +332,12 @@ tkt
       }
     })
     const port = +process.env.PORT || 8080
-    const server = await new Promise(resolve =>
+    const server = await new Promise((resolve) =>
       app.listen(port, function () {
         resolve(this)
       }),
     )
     console.log('Now listening on port ' + port)
-    return new Promise(() => { })
+    return new Promise(() => {})
   })
   .parse()
