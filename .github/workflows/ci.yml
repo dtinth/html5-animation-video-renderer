@@ -1,0 +1,76 @@
+name: Build and run
+
+on:
+  schedule: # Last commit on default branch only
+    - cron: '1 2 3 * *'
+
+  push:
+    branches:
+      - 'master'
+      - 'feat/github-action'
+
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 16.x
+
+      # - name: Install SSH key
+      #   uses: shimataro/ssh-key-action@v2
+      #   with:
+      #     key: ${{ secrets.SSH_KEY }}
+      #     name: id_rsa # optional
+      #     known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      #     config: ${{ secrets.CONFIG }} # ssh_config; optional
+      #     if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
+
+      - name: Install ffmpeg, yarn
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg yarn
+
+      - name: Create output folder
+        run: mkdir -p output
+
+      - name: Installling dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: yarn install
+
+
+      - name: Running HTTP server at background
+        run: |
+          yarn install
+          env PORT=8080 yarn http-server &
+        env:
+          PORT: 8080
+
+
+      - run: |
+          node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --video=output/gsap-hello-world.mp4 --parallelism=8
+      - run: |
+          node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
+
+      - run: |
+          node render --url=http://localhost:8080/examples/vue-starfield.html?render --video=output/vue-starfield.mp4 --parallelism=4
+      - run: |
+          node render --url=http://localhost:8080/examples/vue-starfield.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
+
+      - run: |
+          node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --video=output/pixi-dtinth-intro.mp4 --parallelism=4
+      - run: |
+          node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/pixi-dtinth-intro
+
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: output
