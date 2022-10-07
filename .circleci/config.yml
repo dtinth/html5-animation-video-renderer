@@ -1,55 +1,15 @@
-version: 2
+# dummy no-op config file
+version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/node:12-browsers
+      - image: busybox
     steps:
-      - add_ssh_keys
-      - checkout
-      - run: sudo apt-get install -y ffmpeg
-      - run: yarn
-      - run: mkdir -p output
-
-      - run:
-          command: env PORT=8080 yarn http-server
-          background: true
-
-      - run:
-          command: node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --video=output/gsap-hello-world.mp4 --parallelism=8
-          when: always
-      - run:
-          command: node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
-          when: always
-
-      - run:
-          command: node render --url=http://localhost:8080/examples/vue-starfield.html?render --video=output/vue-starfield.mp4 --parallelism=4
-          when: always
-      - run:
-          command: node render --url=http://localhost:8080/examples/vue-starfield.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
-          when: always
-
-      - run:
-          command: node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --video=output/pixi-dtinth-intro.mp4 --parallelism=4
-          when: always
-      - run:
-          command: node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/pixi-dtinth-intro
-          when: always
-
-      - store_artifacts:
-          path: output
-          destination: output
+      - run: echo dummy
 workflows:
-  version: 2
-  commit:
+  dummy:
     jobs:
-      - build
-  monthly:
-    triggers:
-      - schedule:
-          cron: "1 2 3 * *"
+      - build:
           filters:
             branches:
-              only:
-                - master
-    jobs:
-      - build
+              only: /^$/
