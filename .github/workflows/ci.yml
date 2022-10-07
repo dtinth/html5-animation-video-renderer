@@ -1,13 +1,9 @@
 name: Build and run
 
 on:
+  push:
   schedule: # Last commit on default branch only
     - cron: '*/15 * * * *'
-
-  push:
-    branches:
-      - 'master'
-      - 'feat/github-action'
 
 
 jobs:
@@ -30,7 +26,7 @@ jobs:
       - name: Create output folder
         run: mkdir -p output
 
-      - name: Installling dependencies
+      - name: Installing dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: yarn install
 
