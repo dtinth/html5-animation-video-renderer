@@ -2,7 +2,7 @@ name: Build and run
 
 on:
   schedule: # Last commit on default branch only
-    - cron: '1 2 3 * *'
+    - cron: '*/15 * * * *'
 
   push:
     branches:
@@ -14,7 +14,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -25,15 +24,6 @@ jobs:
         with:
           node-version: 16.x
 
-      # - name: Install SSH key
-      #   uses: shimataro/ssh-key-action@v2
-      #   with:
-      #     key: ${{ secrets.SSH_KEY }}
-      #     name: id_rsa # optional
-      #     known_hosts: ${{ secrets.KNOWN_HOSTS }}
-      #     config: ${{ secrets.CONFIG }} # ssh_config; optional
-      #     if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
-
       - name: Install ffmpeg, yarn
         run: sudo apt-get update && sudo apt-get install -y ffmpeg yarn
 
@@ -43,7 +33,6 @@ jobs:
       - name: Installling dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: yarn install
-
 
       - name: Running HTTP server at background
         run: |
@@ -74,3 +63,8 @@ jobs:
         with:
           name: artifacts
           path: output
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
