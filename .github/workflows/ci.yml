@@ -3,7 +3,7 @@ name: Build and run
 on:
   push:
   schedule: # Last commit on default branch only
-    - cron: '*/15 * * * *'
+    - cron: '1 2 3 * *'
 
 
 jobs:
