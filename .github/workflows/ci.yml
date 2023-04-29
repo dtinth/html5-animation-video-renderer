@@ -5,7 +5,6 @@ on:
   schedule: # Last commit on default branch only
     - cron: '1 2 3 * *'
 
-
 jobs:
   build:
     name: Build
@@ -15,44 +14,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
       - name: Setup Node
         uses: actions/setup-node@v2.1.5
         with:
-          node-version: 16.x
+          node-version: 18.x
+          cache: pnpm
 
-      - name: Install ffmpeg, yarn
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg yarn
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Create output folder
         run: mkdir -p output
 
       - name: Installing dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn install
+        run: pnpm install
 
       - name: Running HTTP server at background
         run: |
-          yarn install
           env PORT=8080 yarn http-server &
-        env:
-          PORT: 8080
-
 
       - run: |
-          node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --video=output/gsap-hello-world.mp4 --parallelism=8
+          node render --url="http://localhost:8080/examples/gsap-hello-world.html?render" --video=output/gsap-hello-world.mp4 --parallelism=8
       - run: |
-          node render --url=http://localhost:8080/examples/gsap-hello-world.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
+          node render --url="http://localhost:8080/examples/gsap-hello-world.html?render" --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/gsap-hello-world
 
       - run: |
-          node render --url=http://localhost:8080/examples/vue-starfield.html?render --video=output/vue-starfield.mp4 --parallelism=4
+          node render --url="http://localhost:8080/examples/vue-starfield.html?render" --video=output/vue-starfield.mp4 --parallelism=4
       - run: |
-          node render --url=http://localhost:8080/examples/vue-starfield.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
+          node render --url="http://localhost:8080/examples/vue-starfield.html?render" --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/vue-starfield
 
       - run: |
-          node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --video=output/pixi-dtinth-intro.mp4 --parallelism=4
+          node render --url="http://localhost:8080/examples/pixi-dtinth-intro.html?render" --video=output/pixi-dtinth-intro.mp4 --parallelism=4
       - run: |
-          node render --url=http://localhost:8080/examples/pixi-dtinth-intro.html?render --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/pixi-dtinth-intro
-
+          node render --url="http://localhost:8080/examples/pixi-dtinth-intro.html?render" --scale=0.1 --no-video --start=64 --end=65 --png=output/previews/pixi-dtinth-intro
 
       - name: Store artifacts
         uses: actions/upload-artifact@v3
