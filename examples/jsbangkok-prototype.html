@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../lib/style.css" />
+    <style>
+      #scene {
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      JavaScript Bangkok 1.0.0 prototype
+
+      Original art style by @jirayutle
+      https://dribbble.com/shots/10593738-Javascript-Bangkok-1-0-0-CI-Pre-Release-Version
+
+      GLSL implementation by @dtinth
+    -->
+    <!-- The scene element will be rendered to the video file. -->
+    <div id="scene"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
+    <script id="shader" type="shader">
+      // https://pixijs.download/dev/docs/PIXI.Filter.html
+      varying vec2 vTextureCoord;
+      uniform sampler2D uSampler;
+      uniform vec4 inputSize;
+      uniform vec4 outputFrame;
+
+      // Custom uniforms
+      uniform float time;
+      uniform float traverseAngle;
+      uniform float rotateAngle;
+      uniform float mouseX;
+      uniform float mouseY;
+
+      // Thaitone colors
+      // https://www.facebook.com/thaitonecolor/
+      // https://unpkg.com/@onemoregroup/thaitones@1.1.3/thaitones.js
+      #define Khaophong   rgb(241, 237, 226)
+      #define Chan        rgb(244, 210,  93)
+      #define Mekkhram    rgb(  7,  47,  79)
+      #define Khiaonil    rgb(  0,  40,  53)
+      #define Nilkan      rgb(  0,   8,  11)
+      #define Khaokabang  rgb(208, 207, 207)
+      #define Khramfarang rgb( 12,  77, 162)
+      #define Nak         rgb(203, 115, 113)
+
+      // https://gist.github.com/yiwenl/3f804e80d0930e34a0b33359259b556c
+      vec2 rotate(vec2 v, float a) {
+        float s = sin(a);
+        float c = cos(a);
+        mat2 m = mat2(c, -s, s, c);
+        return m * v;
+      }
+
+      vec4 rgb(int r, int g, int b) {
+        return vec4(float(r) / 255.0, float(g) / 255.0, float(b) / 255.0, 1.);
+      }
+
+      // http://byteblacksmith.com/improvements-to-the-canonical-one-liner-glsl-rand-for-opengl-es-2-0/
+      highp float random(vec2 co) {
+          highp float a = 12.9898;
+          highp float b = 78.233;
+          highp float c = 43758.5453;
+          highp float dt= dot(co.xy ,vec2(a,b));
+          highp float sn= mod(dt,3.14);
+          return fract(sin(sn) * c);
+      }
+
+      // Concept similar to hex tiling, but it’s a square.
+      // Learn more: https://www.youtube.com/watch?v=VmrIDyYiJBA
+      vec4 lotus(vec2 grid, vec4 outside, vec4 inside, vec4 border) {
+        grid = min(grid, 1. - grid) * 2.;
+        if (grid.x < grid.y) grid.xy = grid.yx;
+        float threshold = 0.05;
+        float margin = 0.12;
+        float borderWidth = 0.08;
+        float diagonalDistance = dot(grid - vec2(1. - threshold, threshold), normalize(vec2(-1., 1.)));
+        float minDistance = min(diagonalDistance, min(grid.x, grid.y));
+        return minDistance < margin ? outside : minDistance < margin + borderWidth ? border : inside;
+      }
+
+      void checkShape(inout float min, float distance) {
+        if (distance < min) min = distance;
+      }
+
+      // SDF = Signed distance function: http://www.michaelwalczyk.com/blog/2017/5/25/ray-marching
+      void computeSquaresAndTriangles(vec2 uv, out vec4 diffuse, out float sdf) {
+        vec2 grid = fract(uv);
+        vec2 base = floor(uv);
+        diffuse = Khaokabang;
+        sdf = 100.0;
+
+        float rand1 = random(base);
+        float rand2 = random(base + 123.);
+        float rand3 = random(base + 456.);
+        vec2 mirroredGrid = min(grid, 1. - grid) * 2.;
+        float distanceFromSide = min(mirroredGrid.x, mirroredGrid.y);
+        float margin = 0.08;
+        vec4 accent = Chan;
+        if (rand2 < 0.33) accent = Khramfarang;
+        else if (rand2 < 0.67) accent = Nak;
+
+        checkShape(sdf, distanceFromSide - margin);
+        if (rand1 < 0.2) {
+          if (rand3 < 0.1) {
+            if ((grid.x < 0.5 && grid.y < 0.5) || (grid.x > 0.5 && grid.y > 0.5)) diffuse = accent;
+          } else if (rand3 < 0.2) {
+            if ((grid.x < 0.5 && grid.y > 0.5) || (grid.x > 0.5 && grid.y < 0.5)) diffuse = accent;
+          }
+          checkShape(sdf, 1. - margin - max(mirroredGrid.x, mirroredGrid.y));
+        } else if (rand1 < 0.25) {
+          if (rand3 < 0.2) diffuse = accent;
+          float distanceFromDiagonal = abs(dot(grid, normalize(vec2(1., -1.)))) * 2.;
+          checkShape(sdf, distanceFromDiagonal - margin);
+        } else if (rand1 < 0.3) {
+          if (rand3 < 0.2) diffuse = accent;
+          float distanceFromDiagonal = abs(dot(grid - vec2(1., 0.), normalize(vec2(1., 1.)))) * 2.;
+          checkShape(sdf, distanceFromDiagonal - margin);
+        } else {
+          if (rand3 < 0.2) diffuse = accent;
+        }
+
+        if (sdf < 0.) {
+          diffuse = Khaophong;
+        }
+      }
+
+      vec4 getColor(vec2 uv, float rotation) {
+        vec2 grid = fract(uv);
+        vec2 base = floor(uv);
+        float rand1 = random(base);
+        int pickedStyle = int(mod(dot(vTextureCoord, rotate(vec2(1., 0.), time * 0.4)) + time * 4., 64.) / 16.);
+        if (dot(vTextureCoord - 0.5, rotate(vec2(1., 0.), 0.64 + time * 0.16)) > 0.) {
+          vec4 diffuseA, diffuseB;
+          float sdfA, sdfB;
+          computeSquaresAndTriangles(uv, diffuseA, sdfA);
+          // Use shifted SDF to create soft shadow
+          // Learn more: https://www.youtube.com/watch?v=svLzmFuSBhk
+          computeSquaresAndTriangles(uv + rotate(vec2(-0.1, -0.1), rotation), diffuseB, sdfB);
+          return diffuseA * (sdfA < 0. ? 1. : 0.75 + 0.25 * smoothstep(-0.3, 0.3, sdfB));
+        } else if (pickedStyle == 0) {
+          vec4 outside = Khaophong;
+          vec4 inside = rand1 < 0.2 ? Khaophong : mix(Khaophong, Chan, rand1);
+          vec4 border = rand1 < 0.2 ? Chan : inside;
+          return lotus(grid, outside, inside, border);
+        } else if (pickedStyle == 1) {
+          vec4 gradient = mix(Mekkhram, Khiaonil, vTextureCoord.y);
+          vec4 outside = gradient;
+          vec4 inside = mix(Khaokabang, outside, 1. - pow(rand1, 2.));
+          vec4 border = inside;
+          return lotus(grid, outside, inside, border);
+        } else if (pickedStyle == 2) {
+          vec4 outside = Nilkan;
+          vec4 inside = mix(Chan, outside, 1. - pow(rand1, 2.));
+          vec4 border = inside;
+          return lotus(grid, outside, inside, border);
+        } else if (pickedStyle == 3) {
+          vec4 outside = Chan;
+          vec4 inside = mix(Khaophong, outside, 1. - pow(rand1, 2.));
+          vec4 border = inside;
+          return lotus(grid, outside, inside, border);
+        }
+      }
+
+      void main(void) {
+        float z = 1. - (1. / (max(0., time - 0.5) + 1.)) * 0.999;
+        float rotation = 3.141592 * (rotateAngle > 0.5 ? 1. : -1.) * 3. / 4. * (1. - (1. / (pow(max(0., (time - 1.) / 2.), 5.) + 1.)));
+        vec2 uv = ((vTextureCoord - 0.5) * normalize(inputSize.xy)) * 16. * z;
+        uv += 0.5;
+        vec2 screenUv = uv;
+        {
+          float t = max(0., time - 3.);
+          uv += (t < 1. ? pow(t, 2.) * 0.5 : t - 0.5) * rotate(vec2(1., 0.), traverseAngle);
+        }
+        uv = rotate(uv, rotation);
+        gl_FragColor = getColor(uv, rotation);
+      }
+    </script>
+
+    <script>
+      const fps = 60
+
+      // Headless Chrome fails the `failIfMajorPerformanceCaveat` test.
+      // Disable this so that Pixi.js can run.
+      // See: https://github.com/pixijs/pixi.js/issues/5778
+      PIXI.settings.FAIL_IF_MAJOR_PERFORMANCE_CAVEAT = false
+
+      // https://pixijs.io/examples/#/filters-advanced/pixie-shadow-filter.js
+      // That's default v4 vertex shader, just in case
+      const myVertex = `
+      attribute vec2 aVertexPosition;
+      attribute vec2 aTextureCoord;
+
+      uniform mat3 projectionMatrix;
+
+      varying vec2 vTextureCoord;
+
+      void main(void) {
+          gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+          vTextureCoord = aTextureCoord;
+      }
+      `
+
+      const app = new PIXI.Application({
+        width: 1920,
+        height: 1080,
+        transparent: true,
+        autoStart: false,
+      })
+
+      document.querySelector('#scene').appendChild(app.view)
+
+      const readyPromise = Promise.resolve().then(() => {
+        const shader = new PIXI.Filter(
+          myVertex,
+          document.querySelector('#shader').textContent,
+          {
+            time: 0,
+            traverseAngle: 0.15440664045806352 * Math.PI * 2,
+            rotateAngle: 0.4497984069429235,
+            mouseX: 0.5,
+            mouseY: 0.5,
+          },
+        )
+        app.stage.filters = [shader]
+        app.stage.filterArea = app.screen
+        app.ticker.update()
+
+        const setTime = (t) => {
+          shader.uniforms.time = t
+          app.ticker.update()
+        }
+
+        // When rendering, stop the animation because we need a freeze frame.
+        if (location.search !== '?render') {
+          const start = performance.now()
+          const frame = () => {
+            setTime((performance.now() - start) / 1000)
+            requestAnimationFrame(frame)
+          }
+          frame()
+        }
+        return { setTime }
+      })
+
+      // This function tells renderer about basic information about the video.
+      async function getInfo() {
+        const { timeline } = await readyPromise
+        return {
+          fps,
+          numberOfFrames: 60 * fps,
+        }
+      }
+
+      // This function will be called before rendering each frame of the video.
+      async function seekToFrame(frame) {
+        const { setTime } = await readyPromise
+        setTime(frame / fps)
+      }
+    </script>
+  </body>
+</html>
